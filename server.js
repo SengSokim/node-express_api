@@ -2,7 +2,8 @@ const express = require('express')
 const app = express()
 const mongoose = require('mongoose');
 const { findByIdAndDelete } = require('./models/productModel');
-const Product = require('./models/productModel')
+const Product = require('./models/productModel');
+const User = require('./models/userModel');
 app.use(express.json());
 
 app.use(express.urlencoded({ extended: false }))
@@ -18,9 +19,6 @@ app.use(function (req, res, next) {
 
 app.get('/', function (req, res) {
     res.send(JSON.stringify({ message: 'ok' }))
-})
-app.get('/blog', function (req, res) {
-    res.send(JSON.stringify({ message: 'blog post' }))
 })
 app.get('/products', async (req, res) => {
     try {
@@ -71,6 +69,61 @@ app.delete('/products/:id', async (req, res) => {
             return res.status(404).json({ message: `Cannot find any product by id ${id}` })
         }
         res.status(200).json(product);
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+})
+
+// USERS
+
+app.get('/users', async (req, res) =>{
+    try {
+        const users = await User.find({});
+        res.status(200).json(users)
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+})
+app.get('/users/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findById(id);
+        res.status(200).json(user)
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+})
+app.post('/users', async (req, res) => {
+    try {
+        const user = await User.create(req.body)
+        res.status(200).json(user)
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: error.message })
+    }
+})
+app.put('/users/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findByIdAndUpdate(id, req.body);
+        if (!user) {
+            return res.status(404).json({ message: `Cannot find any user by id ${id}` })
+        }
+        const updatedUser = await User.findById(id);
+        res.status(200).json(updatedUser)
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+})
+// delete user
+app.delete('/users/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findByIdAndDelete(id);
+        if (!user) {
+            return res.status(404).json({ message: `Cannot find any user by id ${id}` })
+        }
+        res.status(200).json(user);
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
